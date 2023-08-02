@@ -132,15 +132,14 @@ func (a *Agent) step(ctx context.Context, claim types.Claim, game types.Game) er
 		return nil
 	}
 
-	// Uncomment these lines once the oracle loading is ready.
-	// oracleData, err := a.solver.OracleData(claim)
-	// if err != nil {
-	// 	a.log.Debug("Failed to get oracle data", "err", err)
-	// 	return nil
-	// }
-	//
-	// a.log.Info("Loading oracle data", "oracleKey", oracleData.OracleKey, "oracleData", oracleData.OracleData)
-	// if a.responder.LoadOracleData(ctx, oracleData) != nil {
+	_, err := a.solver.GetOracleData(ctx, claim)
+	if err != nil {
+		a.log.Debug("Failed to get oracle data", "err", err)
+		return nil
+	}
+
+	// a.log.Info("Updating oracle data", "oracleKey", oracleData.OracleKey, "oracleData", oracleData.OracleData)
+	// if a.updater.LoadOracleData(ctx, oracleData) != nil {
 	// 	return fmt.Errorf("load oracle data: %w", err)
 	// }
 
