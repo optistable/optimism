@@ -274,7 +274,7 @@ contract Messenger_Initializer is Portal_Initializer {
         addressManager = new AddressManager();
 
         // Setup implementation
-        L1CrossDomainMessenger L1MessengerImpl = new L1CrossDomainMessenger(op);
+        L1CrossDomainMessenger L1MessengerImpl = new L1CrossDomainMessenger();
 
         // Setup the address manager and proxy
         vm.prank(multisig);
@@ -284,7 +284,7 @@ contract Messenger_Initializer is Portal_Initializer {
             "OVM_L1CrossDomainMessenger"
         );
         L1Messenger = L1CrossDomainMessenger(address(proxy));
-        L1Messenger.initialize();
+        L1Messenger.initialize(op);
 
         vm.etch(
             Predeploys.L2_CROSS_DOMAIN_MESSENGER,
