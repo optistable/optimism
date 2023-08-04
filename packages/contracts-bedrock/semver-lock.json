@@ -1,6 +1,6 @@
 {
   "src/L1/L1CrossDomainMessenger.sol": "0x76697013a600b9fe46f5606d445725a164a37cff7058d109dc2c1601a46a4d2a",
-  "src/L1/L1ERC721Bridge.sol": "0x6aeb386bab56e1fa45692188ffc0dcb09c6719e17776e1fffd13278f7a5f40cc",
+  "src/L1/L1ERC721Bridge.sol": "0x1bf9aa5b49aecb3d1b659dfd272ea1d947069b10cb611d54578584adf8b3922c",
   "src/L1/L1StandardBridge.sol": "0x26fd79e041c403f4bc68758c410fcc801975e7648c0b51a2c4a6e8c44fabcbfd",
   "src/L1/L2OutputOracle.sol": "0xd6c5eb38732077c4705f46a61be68a7beccc069a99ed1d07b8e1fc6e1de8ffa6",
   "src/L1/OptimismPortal.sol": "0x06c324c474d251a1ef0a1a6a22013964c5b2b871e641bbedf447f231e3f44dcc",
@@ -10,7 +10,7 @@
   "src/L2/L1Block.sol": "0x7fbfc8b4da630386636c665570321fdec287b0867dbe0f91c2e7cd5b7697c220",
   "src/L2/L1FeeVault.sol": "0x62bfe739ff939fc68f90916399ac4160936d31eb37749cb014dd9d0c5dd4183a",
   "src/L2/L2CrossDomainMessenger.sol": "0x1ffe8f6bad8eaa4c7ecff77456d382bdc5b371ffd672af6b539cb1a97f23e265",
-  "src/L2/L2ERC721Bridge.sol": "0x8c43c5f631a79df9f736c6e336af285065e798151e97f11b52bb7d722759f35f",
+  "src/L2/L2ERC721Bridge.sol": "0x7026031cf6546b105bbbd53e7f6f0c0376e60227908d8a5bc084990b25c2f341",
   "src/L2/L2StandardBridge.sol": "0x73a4fea3dca8ac7d7ba32e38aadeb69bd344042666a40a75e8c28849f01999e5",
   "src/L2/L2ToL1MessagePasser.sol": "0xed800b600cb3f67e18a1ab10750e3934a8b3e42178f422bcacfde770a6e8e8bd",
   "src/L2/SequencerFeeVault.sol": "0xd57c143b1f042400430b991b806bf971628e6980406c751e82d19ae80eeb4e8d",
