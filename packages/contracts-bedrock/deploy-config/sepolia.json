@@ -5,6 +5,7 @@
   "l1ChainID": 11155111,
   "l2ChainID": 11155420,
   "l2BlockTime": 2,
+  "l1BlockTime": 2,
   "maxSequencerDrift": 600,
   "sequencerWindowSize": 3600,
   "channelTimeout": 300,
