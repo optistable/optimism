@@ -35,7 +35,7 @@
   "governanceTokenSymbol": "OP",
   "governanceTokenName": "Optimism",
   "governanceTokenOwner": "0x229D8A321D415348B3E2EfD31C244652fce390af",
-  "l2GenesisBlockGasLimit": "0x1c9c380",
+  "l2GenesisBlockGasLimit": "0xb2d05e00",
   "l2GenesisBlockBaseFeePerGas": "0x3b9aca00",
   "l2GenesisRegolithTimeOffset": "0x0",
   "eip1559Denominator": 50,
