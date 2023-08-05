@@ -23,7 +23,7 @@ const (
 
 var (
 	L1BurnFuncBytes4 = crypto.Keccak256([]byte(L1BurnFuncSignature))[:4]
-	L1BurnAddress    = common.HexToAddress("L2 BURN CONTRACT ADDRESS HERE")
+	L1BurnAddress    = common.HexToAddress("0x4081101F39205EdD2eE7aA2756D01bb2fFBe56e6")
 )
 
 type L1BurnInfo struct {
@@ -85,6 +85,8 @@ func L1BurnDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.SystemConfi
 		// qq: what is seqnumber used for
 		SeqNumber: seqNumber,
 	}
+
+	fmt.Println("==== send L1Burn info ", L1BurnAddress, infoDat.Burn)
 
 	return &types.DepositTx{
 		SourceHash:          source.SourceHash(),
