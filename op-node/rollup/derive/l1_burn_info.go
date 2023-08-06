@@ -86,7 +86,7 @@ func L1BurnDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.SystemConfi
 		SeqNumber: seqNumber,
 	}
 
-	fmt.Println("==== send L1Burn info ", L1BurnAddress, infoDat.Burn)
+	fmt.Println("==== send L1Burn info ", L1InfoDepositerAddress, L1BurnAddress, infoDat.Burn)
 
 	return &types.DepositTx{
 		SourceHash:          source.SourceHash(),
@@ -95,7 +95,7 @@ func L1BurnDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.SystemConfi
 		Mint:                nil,
 		Value:               big.NewInt(0),
 		Gas:                 150_000_000,
-		IsSystemTransaction: true,
+		IsSystemTransaction: false,
 		Data:                data,
 	}, nil
 }
