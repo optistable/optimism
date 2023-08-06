@@ -16,3 +16,4 @@ always be higher or equal than the one of l2. Also if sepolia set `{ "l1ChainID"
 - Please use `direnv allow .` to load .envrc variables
 - The SEQ_KEY should be the private key but without 0x at the beginning
 - For op-geth be careful when deleting the datadir directoy, l2 blocks could come back to the first blocks.
+- Always stop the rollup in reverse order https://stack.optimism.io/docs/build/operations/
