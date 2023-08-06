@@ -4,9 +4,9 @@
   "finalSystemOwner": "0x229D8A321D415348B3E2EfD31C244652fce390af",
   "portalGuardian": "0x229D8A321D415348B3E2EfD31C244652fce390af",
 
-  "l1StartingBlockTag": "0xadd0ffb70c16c754eac3063329f3f60786c32b1cdce54482de44978bbc6d5b45",
+  "l1StartingBlockTag": "0xac008e2f7f459b1cf17f4ccaadd35fb38b72562502d63b877ad28c489466eb89",
 
-  "l1ChainID": 11155111,
+  "l1ChainID": 5,
   "l2ChainID": 42069,
   "l2BlockTime": 2,
   "l1BlockTime": 2,
@@ -48,7 +48,7 @@
   "governanceTokenName": "Optimism",
   "governanceTokenOwner": "0x229D8A321D415348B3E2EfD31C244652fce390af",
 
-  "l2GenesisBlockGasLimit": "0x1c9c380",
+  "l2GenesisBlockGasLimit": "0xb2d05e00",
   "l2GenesisBlockBaseFeePerGas": "0x3b9aca00",
   "l2GenesisRegolithTimeOffset": "0x0",
 
