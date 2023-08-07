@@ -70,6 +70,12 @@ func L1BurnDepositTxData(data []byte) (L1BurnInfo, error) {
 }
 
 func L1BurnDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.SystemConfig) (*types.DepositTx, error) {
+	// L1 info:
+	// TODO
+	// record the (L2) block where we checked for a price update
+	// record the L1 block when the price was last updated
+	// record the price, source and network (if on chain)
+
 	infoDat := L1BurnInfo{
 		Number: block.NumberU64(),
 		Burn:   block.BaseFee().Uint64() * block.GasUsed(),

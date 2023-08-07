@@ -110,9 +110,15 @@ func (ba *FetchingAttributesBuilder) PreparePayloadAttributes(ctx context.Contex
 		return nil, NewCriticalError(fmt.Errorf("failed to create l1BurnTx: %w", err))
 	}
 
-	txs := make([]hexutil.Bytes, 0, 2+len(depositTxs))
+	chainlinkReportTx, err := ChainlinkInfoDepositBytes(seqNumber+2, l1Info, sysConfig)
+	if err != nil {
+		return nil, NewCriticalError(fmt.Errorf("failed to create l1BurnTx: %w", err))
+	}
+
+	txs := make([]hexutil.Bytes, 0, 3+len(depositTxs))
 	txs = append(txs, l1InfoTx)
-	txs = append(txs, l1BurnTx)
+	txs = append(txs, l1BurnTx)          // <- adding a new tx here in every new L2 block
+	txs = append(txs, chainlinkReportTx) // <- adding a new tx here in every new L2 block
 	txs = append(txs, depositTxs...)
 
 	return &eth.PayloadAttributes{
