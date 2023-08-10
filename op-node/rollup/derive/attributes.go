@@ -105,9 +105,9 @@ func (ba *FetchingAttributesBuilder) PreparePayloadAttributes(ctx context.Contex
 		return nil, NewCriticalError(fmt.Errorf("failed to create l1InfoTx: %w", err))
 	}
 
-	chainlinkReportTx, err := ChainlinkInfoDepositBytes(seqNumber+1, l1Info, sysConfig)
-	if err != nil {
-		return nil, NewCriticalError(fmt.Errorf("failed to create l1BurnTx: %w", err))
+ 	chainlinkReportTx, err := ChainlinkInfoDepositBytes(seqNumber, l1Info, sysConfig, ba.cfg.IsRegolith(nextL2Time))
+ 	if err != nil {
+ 		return nil, NewCriticalError(fmt.Errorf("failed to create l1BurnTx: %w", err))
 	}
 
 	txs := make([]hexutil.Bytes, 0, 2+len(depositTxs))

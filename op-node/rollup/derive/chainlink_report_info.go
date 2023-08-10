@@ -10,14 +10,13 @@ import (
 
 	"github.com/ethereum-optimism/optimism/op-node/eth"
 	"github.com/ethereum-optimism/optimism/op-service/solabi"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 
 	aggregatorv3 "github.com/ethereum-optimism/optimism/op-node/aggregatorv3"
-
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 const (
@@ -28,13 +27,16 @@ const (
 
 var (
 	ChainlinkReportFuncBytes4 = crypto.Keccak256([]byte(ChainlinkReportFuncSignature))[:4]
-	ChainlinkReportAddress    = common.HexToAddress("0x0ba4D449658758Dae8a8793e8182acc7b5f8976f")
+	ChainlinkReportAddress    = common.HexToAddress("0x4081101F39205EdD2eE7aA2756D01bb2fFBe56e6")
+	// 0x4081101F39205EdD2eE7aA2756D01bb2fFBe56e6
 )
 
 type ChainlinkInfo struct {
 	Number *big.Int
 	Price  *big.Int
 }
+
+var lastPrice *big.Int
 
 func (info *ChainlinkInfo) MarshalBinary() ([]byte, error) {
 	w := bytes.NewBuffer(make([]byte, 0, ChainlinkReportLen))
@@ -78,11 +80,12 @@ func ChainlinkInfoDepositTxData(data []byte) (ChainlinkInfo, error) {
 }
 
 func makeChainlinkCall() *big.Int {
+
 	// Fetch the rpc_url.
 	rpcUrl := "https://eth-sepolia.g.alchemy.com/v2/MdbUH8ez_zjMYPZBkIhj8FQhBhlIw1wt"
 
 	// Assign default values to feedAddress, and update value if a feed address was passed in the command line.
-	feedAddress := "0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43"
+	feedAddress := "0xA2F78ab2355fe2f984D808B5CeE7FD0A93D5270E"
 
 	// Initialize client instance using the rpcUrl.
 	client, err := ethclient.Dial(rpcUrl)
@@ -101,28 +104,33 @@ func makeChainlinkCall() *big.Int {
 		fmt.Println(err)
 	}
 
-	decimals, err := chainlinkPriceFeedProxy.Decimals(&bind.CallOpts{})
-	if err != nil {
-		fmt.Println(err)
-	}
+	// _, err = chainlinkPriceFeedProxy.Decimals(&bind.CallOpts{})
+	//	if err != nil {
+	// 		fmt.Println(err)
+	//	}
 
-	description, err := chainlinkPriceFeedProxy.Description(&bind.CallOpts{})
-	if err != nil {
-		fmt.Println(err)
-	}
+	//	_, err := chainlinkPriceFeedProxy.Description(&bind.CallOpts{})
+	//	if err != nil {
+	//		fmt.Println(err)
+	//	}
 
 	// Compute a big.int which is 10**decimals.
-	divisor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil)
+	// divisor := new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(decimals)), nil)
 
-	fmt.Printf("%v Price feed address is  %v\n", description, chainlinkPriceFeedProxyAddress)
-	fmt.Printf("Round id is %v\n", roundData.RoundId)
+	//	fmt.Printf("%v Price feed address is  %v\n", description, chainlinkPriceFeedProxyAddress)
+	// fmt.Printf("Round id is %v\n", roundData.RoundId)
 	fmt.Printf("Answer is %v\n", roundData.Answer)
-	fmt.Printf("Formatted answer is %v\n", divideBigInt(roundData.Answer, divisor))
-	fmt.Printf("Started at %v\n", roundData.StartedAt)
-	fmt.Printf("Updated at %v\n", roundData.UpdatedAt)
-	fmt.Printf("Answered in round %v\n", roundData.AnsweredInRound)
+	// fmt.Printf("Formatted answer is %v\n", divideBigInt(roundData.Answer, divisor))
+	//	fmt.Printf("Started at %v\n", roundData.StartedAt)
+	//	fmt.Printf("Updated at %v\n", roundData.UpdatedAt)
+	//	fmt.Printf("Answered in round %v\n", roundData.AnsweredInRound)
+	if roundData.Answer == nil {
+		return lastPrice
+	} else {
+		lastPrice = roundData.Answer
+		return roundData.Answer
+	}
 
-	return roundData.Answer
 	// return roundData.Answer.Uint64()
 }
 
@@ -136,7 +144,7 @@ func divideBigInt(num1 *big.Int, num2 *big.Int) *big.Float {
 	return result
 }
 
-func ChainlinkInfoDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.SystemConfig) (*types.DepositTx, error) {
+func ChainlinkInfoDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.SystemConfig, regolith bool) (*types.DepositTx, error) {
 	// L1 info:
 	// TODO
 	// record the (L2) block where we checked for a price update
@@ -162,20 +170,27 @@ func ChainlinkInfoDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.Syst
 
 	fmt.Println("==== send ChainlinkReport info ", L1InfoDepositerAddress, ChainlinkReportAddress, infoDat.Number, infoDat.Price)
 
-	return &types.DepositTx{
+	out := &types.DepositTx{
 		SourceHash:          source.SourceHash(),
 		From:                L1InfoDepositerAddress,
 		To:                  &ChainlinkReportAddress,
 		Mint:                nil,
 		Value:               big.NewInt(0),
 		Gas:                 150_000_000,
-		IsSystemTransaction: false,
+		IsSystemTransaction: true,
 		Data:                data,
-	}, nil
+	}
+
+	if regolith {
+		out.IsSystemTransaction = false
+		out.Gas = RegolithSystemTxGas
+	}
+
+	return out, nil
 }
 
-func ChainlinkInfoDepositBytes(seqNumber uint64, l1Info eth.BlockInfo, sysCfg eth.SystemConfig) ([]byte, error) {
-	dep, err := ChainlinkInfoDeposit(seqNumber, l1Info, sysCfg)
+func ChainlinkInfoDepositBytes(seqNumber uint64, l1Info eth.BlockInfo, sysCfg eth.SystemConfig, regolith bool) ([]byte, error) {
+	dep, err := ChainlinkInfoDeposit(seqNumber, l1Info, sysCfg, regolith)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create l1 burn tx: %w", err)
 	}
