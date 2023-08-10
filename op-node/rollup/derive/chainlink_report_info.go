@@ -21,18 +21,18 @@ import (
 )
 
 const (
-	ChainlinkReportFuncSignature = "report(uint64,uint256)"
+	ChainlinkReportFuncSignature = "recordPrice(uint256,uint256)"
 	ChainlinkReportArguments     = 2
 	ChainlinkReportLen           = 4 + 32*ChainlinkReportArguments
 )
 
 var (
 	ChainlinkReportFuncBytes4 = crypto.Keccak256([]byte(ChainlinkReportFuncSignature))[:4]
-	ChainlinkReportAddress    = common.HexToAddress("0x4Ac22aB089b3209DE857B1C9D1169a29E5a29165")
+	ChainlinkReportAddress    = common.HexToAddress("0x0ba4D449658758Dae8a8793e8182acc7b5f8976f")
 )
 
 type ChainlinkInfo struct {
-	Number uint64
+	Number *big.Int
 	Price  *big.Int
 }
 
@@ -41,7 +41,7 @@ func (info *ChainlinkInfo) MarshalBinary() ([]byte, error) {
 	if err := solabi.WriteSignature(w, ChainlinkReportFuncBytes4); err != nil {
 		return nil, err
 	}
-	if err := solabi.WriteUint64(w, info.Number); err != nil {
+	if err := solabi.WriteUint256(w, info.Number); err != nil {
 		return nil, err
 	}
 	if err := solabi.WriteUint256(w, info.Price); err != nil {
@@ -61,7 +61,7 @@ func (info *ChainlinkInfo) UnmarshalBinary(data []byte) error {
 	if _, err := solabi.ReadAndValidateSignature(reader, ChainlinkReportFuncBytes4); err != nil {
 		return err
 	}
-	if info.Number, err = solabi.ReadUint64(reader); err != nil {
+	if info.Number, err = solabi.ReadUint256(reader); err != nil {
 		return err
 	}
 	if info.Price, err = solabi.ReadUint256(reader); err != nil {
@@ -144,12 +144,9 @@ func ChainlinkInfoDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.Syst
 	// record the price, source and network (if on chain)
 
 	chainLinkPriceU256 := makeChainlinkCall()
-
 	infoDat := ChainlinkInfo{
-		Number: block.NumberU64(),
-		// Burn:   block.BaseFee().Uint64() * block.GasUsed(),
-		// Number: alchemyBlockNum,
-		Price: chainLinkPriceU256,
+		Number: big.NewInt(0).SetUint64(block.NumberU64()),
+		Price:  chainLinkPriceU256,
 	}
 
 	data, err := infoDat.MarshalBinary()
