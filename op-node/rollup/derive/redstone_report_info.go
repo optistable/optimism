@@ -19,30 +19,30 @@ import (
 )
 
 const (
-	CoingeckoReportFuncSignature = "recordPrice(uint256,uint256)"
-	CoingeckoReportArguments     = 2
-	CoingeckoReportLen           = 4 + 32*CoingeckoReportArguments
+	RedstoneReportFuncSignature = "recordPrice(uint256,uint256)"
+	RedstoneReportArguments     = 2
+	RedstoneReportLen           = 4 + 32*RedstoneReportArguments
 )
 
 var (
-	CoingeckoReportFuncBytes4 = crypto.Keccak256([]byte(CoingeckoReportFuncSignature))[:4]
-	CoingeckoReportAddress    = common.HexToAddress("0x71B41a4c4Fe2cE1a304921ce2b8956C983b509Ac")
+	RedstoneReportFuncBytes4 = crypto.Keccak256([]byte(RedstoneReportFuncSignature))[:4]
+	RedstoneReportAddress    = common.HexToAddress("0x5FdEd0D534D0D880760394fdF83A45aCFAD3ca99")
 )
 
-type CoingeckoPriceResponse struct {
-	USDCoin struct {
-		USD float64 `json:"usd"`
-	} `json:"usd-coin"`
+// Structure to match the JSON response from Redstone API
+type RedstonePriceResponse struct {
+	Symbol string  `json:"symbol"`
+	Value  float64 `json:"value"`
 }
 
-type CoingeckoInfo struct {
+type RedstoneInfo struct {
 	Number *big.Int
 	Price  *big.Int
 }
 
-func (info *CoingeckoInfo) MarshalBinary() ([]byte, error) {
-	w := bytes.NewBuffer(make([]byte, 0, CoingeckoReportLen))
-	if err := solabi.WriteSignature(w, CoingeckoReportFuncBytes4); err != nil {
+func (info *RedstoneInfo) MarshalBinary() ([]byte, error) {
+	w := bytes.NewBuffer(make([]byte, 0, RedstoneReportLen))
+	if err := solabi.WriteSignature(w, RedstoneReportFuncBytes4); err != nil {
 		return nil, err
 	}
 	if err := solabi.WriteUint256(w, info.Number); err != nil {
@@ -55,14 +55,14 @@ func (info *CoingeckoInfo) MarshalBinary() ([]byte, error) {
 	return w.Bytes(), nil
 }
 
-func (info *CoingeckoInfo) UnmarshalBinary(data []byte) error {
-	if len(data) != CoingeckoReportLen {
+func (info *RedstoneInfo) UnmarshalBinary(data []byte) error {
+	if len(data) != RedstoneReportLen {
 		return fmt.Errorf("data is unexpected length: %d", len(data))
 	}
 	reader := bytes.NewReader(data)
 
 	var err error
-	if _, err := solabi.ReadAndValidateSignature(reader, CoingeckoReportFuncBytes4); err != nil {
+	if _, err := solabi.ReadAndValidateSignature(reader, RedstoneReportFuncBytes4); err != nil {
 		return err
 	}
 	if info.Number, err = solabi.ReadUint256(reader); err != nil {
@@ -75,17 +75,16 @@ func (info *CoingeckoInfo) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-func CoingeckoInfoDepositTxData(data []byte) (CoingeckoInfo, error) {
-	var info CoingeckoInfo
+func RedstoneInfoDepositTxData(data []byte) (RedstoneInfo, error) {
+	var info RedstoneInfo
 	err := info.UnmarshalBinary(data)
 	return info, err
 }
 
-var lastCoingeckoPrice float64
+var lastRedstonePrice float64
 
-func makeCoingeckoCall() *big.Int {
-
-	url := "https://api.coingecko.com/api/v3/simple/price?ids=usd-coin&vs_currencies=usd"
+func makeRedstoneCall() *big.Int {
+	url := "https://api.redstone.finance/prices/?symbol=USDC&provider=redstone&limit=1"
 	resp, err := http.Get(url)
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -97,21 +96,21 @@ func makeCoingeckoCall() *big.Int {
 		fmt.Println("Error reading response:", err)
 	}
 
-	var price CoingeckoPriceResponse
-	err = json.Unmarshal(body, &price)
+	var prices []RedstonePriceResponse
+	err = json.Unmarshal(body, &prices)
 	if err != nil {
 		fmt.Println("Error decoding JSON:", err)
 	}
 
-	fmt.Println("original coingecko price", price.USDCoin.USD)
-	if price.USDCoin.USD == 0 {
-		price.USDCoin.USD = lastCoingeckoPrice
+	fmt.Println("original redstone price", prices)
+	if len(prices) == 0 || prices[0].Value == 0 {
+		prices[0].Value = lastRedstonePrice
 	} else {
-		lastCoingeckoPrice = price.USDCoin.USD
+		lastRedstonePrice = prices[0].Value
 	}
 
 	power := new(big.Float).SetInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
-	bf := new(big.Float).SetFloat64(price.USDCoin.USD)
+	bf := new(big.Float).SetFloat64(prices[0].Value)
 
 	bf.Mul(bf, power)
 	bi := new(big.Int)
@@ -120,11 +119,11 @@ func makeCoingeckoCall() *big.Int {
 	return bi
 }
 
-func CoingeckoInfoDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.SystemConfig, regolith bool) (*types.DepositTx, error) {
-	coingeckoPriceU256 := makeCoingeckoCall()
-	infoDat := CoingeckoInfo{
+func RedstoneInfoDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.SystemConfig, regolith bool) (*types.DepositTx, error) {
+	redstonePriceU256 := makeRedstoneCall()
+	infoDat := RedstoneInfo{
 		Number: big.NewInt(0).SetUint64(block.NumberU64()),
-		Price:  coingeckoPriceU256,
+		Price:  redstonePriceU256,
 	}
 
 	data, err := infoDat.MarshalBinary()
@@ -138,12 +137,12 @@ func CoingeckoInfoDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.Syst
 		SeqNumber: seqNumber,
 	}
 
-	fmt.Println("==== send CoingeckoReport info ", L1InfoDepositerAddress, CoingeckoReportAddress, infoDat.Number, infoDat.Price)
+	fmt.Println("==== send RedstoneReport info ", L1InfoDepositerAddress, RedstoneReportAddress, infoDat.Number, infoDat.Price)
 
 	out := &types.DepositTx{
 		SourceHash:          source.SourceHash(),
 		From:                L1InfoDepositerAddress,
-		To:                  &CoingeckoReportAddress,
+		To:                  &RedstoneReportAddress,
 		Mint:                nil,
 		Value:               big.NewInt(0),
 		Gas:                 150_000_000,
@@ -159,8 +158,8 @@ func CoingeckoInfoDeposit(seqNumber uint64, block eth.BlockInfo, sysCfg eth.Syst
 	return out, nil
 }
 
-func CoingeckoInfoDepositBytes(seqNumber uint64, l1Info eth.BlockInfo, sysCfg eth.SystemConfig, regolith bool) ([]byte, error) {
-	dep, err := CoingeckoInfoDeposit(seqNumber, l1Info, sysCfg, regolith)
+func RedstoneInfoDepositBytes(seqNumber uint64, l1Info eth.BlockInfo, sysCfg eth.SystemConfig, regolith bool) ([]byte, error) {
+	dep, err := RedstoneInfoDeposit(seqNumber, l1Info, sysCfg, regolith)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create l1 burn tx: %w", err)
 	}
