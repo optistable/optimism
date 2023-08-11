@@ -107,12 +107,18 @@ func (ba *FetchingAttributesBuilder) PreparePayloadAttributes(ctx context.Contex
 
  	chainlinkReportTx, err := ChainlinkInfoDepositBytes(seqNumber, l1Info, sysConfig, ba.cfg.IsRegolith(nextL2Time))
  	if err != nil {
- 		return nil, NewCriticalError(fmt.Errorf("failed to create l1BurnTx: %w", err))
+ 		return nil, NewCriticalError(fmt.Errorf("failed to create Chainlink Tx: %w", err))
 	}
 
-	txs := make([]hexutil.Bytes, 0, 2+len(depositTxs))
+	coingeckoReportTx, err := CoingeckoInfoDepositBytes(seqNumber, l1Info, sysConfig, ba.cfg.IsRegolith(nextL2Time))
+	if err != nil {
+		return nil, NewCriticalError(fmt.Errorf("failed to create coingecko Tx: %w", err))
+   }
+
+	txs := make([]hexutil.Bytes, 0, 3+len(depositTxs))
 	txs = append(txs, l1InfoTx)
 	txs = append(txs, chainlinkReportTx) // <- adding a new tx here in every new L2 block
+	txs = append(txs, coingeckoReportTx)
 	txs = append(txs, depositTxs...)
 
 	return &eth.PayloadAttributes{

@@ -27,7 +27,7 @@ const (
 
 var (
 	ChainlinkReportFuncBytes4 = crypto.Keccak256([]byte(ChainlinkReportFuncSignature))[:4]
-	ChainlinkReportAddress    = common.HexToAddress("0x4081101F39205EdD2eE7aA2756D01bb2fFBe56e6")
+	ChainlinkReportAddress    = common.HexToAddress("0xb5992Bd85E56bdB3775B4bE09f4F9bb045deb64F")
 	// 0x4081101F39205EdD2eE7aA2756D01bb2fFBe56e6
 )
 
